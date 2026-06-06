@@ -5,7 +5,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "dev": "nodemon --exec tsx src/server.ts"
+    "dev": "nodemon --exec tsx --env-file=.env src/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "@prisma/client": "^7.8.0",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1"
   }
 }

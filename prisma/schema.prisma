@@ -1,0 +1,84 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  phone      String?  @unique
+  address    String?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  cart       Cart?
+}
+
+model Cart {
+  id         String     @id @default(uuid())
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId     String     @unique
+  created_at DateTime   @default(now())
+  updated_at DateTime   @updatedAt
+  cartItems  CartItem[]
+}
+
+model CartItem {
+  id         String   @id @default(uuid())
+  cart       Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cartId     String
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId  String
+  quantity   Int      @default(1)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([cartId, productId])
+}
+
+model Product {
+  id          String     @id @default(uuid())
+  name        String
+  description String
+  price       Float
+  avgRatings  Float      @default(0.0)
+  stock       Int        @default(0)
+  images       String[]
+  category    Category   @relation(fields: [categoryId], references: [id])
+  categoryId  String
+  brand       Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  brandId     String
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+  cartItems   CartItem[]
+}
+
+model Category {
+  id               String     @id @default(uuid())
+  name             String
+  image            String
+  slug             String     @unique
+  parentCategory   Category?  @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id], onDelete: Cascade)
+  parentCategoryId String?
+  subCategories    Category[] @relation("CategoryHierarchy")
+  isActive         Boolean    @default(true)
+  created_at       DateTime   @default(now())
+  updated_at       DateTime   @updatedAt
+  products         Product[]
+}
+
+model Brand {
+  id         String    @id @default(uuid())
+  name       String
+  image      String
+  slug       String    @unique
+  isActive   Boolean   @default(true)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  products   Product[]
+}
