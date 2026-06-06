@@ -48,7 +48,7 @@ model Product {
   price       Float
   avgRatings  Float      @default(0.0)
   stock       Int        @default(0)
-  images       String[]
+  images      String[]
   category    Category   @relation(fields: [categoryId], references: [id])
   categoryId  String
   brand       Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade)
@@ -73,12 +73,13 @@ model Category {
 }
 
 model Brand {
-  id         String    @id @default(uuid())
-  name       String
-  image      String
-  slug       String    @unique
-  isActive   Boolean   @default(true)
-  created_at DateTime  @default(now())
-  updated_at DateTime  @updatedAt
-  products   Product[]
+  id            String    @id @default(uuid())
+  name          String
+  image         String
+  imagePublicId String
+  slug          String    @unique
+  isActive      Boolean   @default(true)
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  products      Product[]
 }

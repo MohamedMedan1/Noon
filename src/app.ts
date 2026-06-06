@@ -1,10 +1,13 @@
 import express, { type NextFunction, type Request, type Response } from "express";
 
+import brandRouter from "./routes/brandRoutes.js"
+
 const app = express();
 
 app.use(express.json()); // Body Parser Middleware
 
 // API endPoints
+app.use("/api/v1/brands", brandRouter);
 
 // Just as begin until create Error Handler
 app.all(/.*/, (req: Request, res: Response, next: NextFunction) => {
