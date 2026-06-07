@@ -59,9 +59,10 @@ model Product {
 }
 
 model Category {
-  id               String     @id @default(uuid())
-  name             String
-  image            String
+  id            String @id @default(uuid())
+  name          String
+  image         String
+  imagePublicId String
   slug             String     @unique
   parentCategory   Category?  @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id], onDelete: Cascade)
   parentCategoryId String?
