@@ -16,7 +16,7 @@ const filterImages = (
 };
 
 const upload = multer({ storage: memoryStorage, fileFilter: filterImages });
-export const uploadImage = (type: "single" | "fields") =>
+export const uploadMulter = (type: "single" | "fields") =>
   type === "single"
     ? upload.single("image")
     : upload.fields([
