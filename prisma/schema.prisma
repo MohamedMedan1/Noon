@@ -21,7 +21,7 @@ model User {
 
 model Cart {
   id         String     @id @default(uuid())
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Restrict)
   userId     String     @unique
   created_at DateTime   @default(now())
   updated_at DateTime   @updatedAt
@@ -30,9 +30,9 @@ model Cart {
 
 model CartItem {
   id         String   @id @default(uuid())
-  cart       Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  cart       Cart     @relation(fields: [cartId], references: [id], onDelete: Restrict)
   cartId     String
-  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
   productId  String
   quantity   Int      @default(1)
   created_at DateTime @default(now())
@@ -42,29 +42,34 @@ model CartItem {
 }
 
 model Product {
-  id          String     @id @default(uuid())
-  name        String
-  description String
-  price       Float
-  avgRatings  Float      @default(0.0)
-  stock       Int        @default(0)
-  images      String[]
-  category    Category   @relation(fields: [categoryId], references: [id])
-  categoryId  String
-  brand       Brand      @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  brandId     String
-  created_at  DateTime   @default(now())
-  updated_at  DateTime   @updatedAt
-  cartItems   CartItem[]
+  id                 String     @id @default(uuid())
+  name               String
+  slug               String     @unique
+  description        String
+  price              Float
+  avgRatings         Float      @default(0.0)
+  stock              Int        @default(0)
+  image              String
+  imagePublicId      String
+  subImages          String[]
+  subImagesPublicIds String[]
+  isActive           Boolean    @default(true)
+  category           Category   @relation(fields: [categoryId], references: [id])
+  categoryId         String
+  brand              Brand      @relation(fields: [brandId], references: [id], onDelete: Restrict)
+  brandId            String
+  created_at         DateTime   @default(now())
+  updated_at         DateTime   @updatedAt
+  cartItems          CartItem[]
 }
 
 model Category {
-  id            String @id @default(uuid())
-  name          String
-  image         String
-  imagePublicId String
+  id               String     @id @default(uuid())
+  name             String
+  image            String
+  imagePublicId    String
   slug             String     @unique
-  parentCategory   Category?  @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id], onDelete: Cascade)
+  parentCategory   Category?  @relation("CategoryHierarchy", fields: [parentCategoryId], references: [id], onDelete: Restrict)
   parentCategoryId String?
   subCategories    Category[] @relation("CategoryHierarchy")
   isActive         Boolean    @default(true)
