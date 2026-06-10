@@ -7,21 +7,75 @@ datasource db {
   provider = "postgresql"
 }
 
+enum Role {
+  SuperAdmin
+  Admin
+  Customer
+  Seller
+}
+
+enum RequestStatus {
+  Pending
+  Approved
+  Rejected
+}
+
 model User {
-  id         String   @id @default(uuid())
-  name       String
-  email      String   @unique
-  password   String
-  phone      String?  @unique
-  address    String?
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  cart       Cart?
+  id           String    @id @default(uuid())
+  name         String?
+  email        String    @unique
+  password     String
+  phone        String?   @unique
+  address      String?
+  role         Role      @default(Customer)
+  isVerified   Boolean   @default(false)
+  otp          String?
+  otpExpiresAt DateTime?
+
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  cart          Cart?
+  sellerProfile SellerProfile?
+  sellerRequest SellerRequest?
+}
+
+model SellerRequest {
+  id               String        @id @default(uuid())
+  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String        @unique
+  storeName        String
+  storeDescription String?
+  businessEmail    String
+  businessPhone    String?
+  businessAddress  String?
+  taxNumber        String?
+  status           RequestStatus @default(Pending)
+  adminNotes       String?
+  reviewedBy       String?
+  reviewedAt       DateTime?
+  created_at       DateTime      @default(now())
+  updated_at       DateTime      @updatedAt
+}
+
+model SellerProfile {
+  id               String   @id @default(uuid())
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String   @unique
+  storeName        String
+  storeDescription String?
+  storeLogo        String?
+  businessEmail    String?  @unique
+  businessPhone    String?
+  businessAddress  String?
+  taxNumber        String?  @unique
+  isActive         Boolean  @default(true)
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
 }
 
 model Cart {
   id         String     @id @default(uuid())
-  user       User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId     String     @unique
   created_at DateTime   @default(now())
   updated_at DateTime   @updatedAt
@@ -30,7 +84,7 @@ model Cart {
 
 model CartItem {
   id         String   @id @default(uuid())
-  cart       Cart     @relation(fields: [cartId], references: [id], onDelete: Restrict)
+  cart       Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
   cartId     String
   product    Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
   productId  String
