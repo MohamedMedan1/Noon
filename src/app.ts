@@ -7,7 +7,6 @@ import adminRoutes from './routes/adminRoutes.js';
 import sellerRoutes from './routes/sellerRoutes.js';
 import userRoutes from './routes/userRoutes.js';
 import sellerRequestRoutes from './routes/sellerRequestRoutes.js';
-import cartRoutes from './routes/cartRoutes.js';
 
 const app = express();
 
@@ -22,9 +21,8 @@ app.use('/api/v1/admin',           adminRoutes);
 app.use('/api/v1/users',           userRoutes);
 app.use('/api/v1/sellers',         sellerRoutes);
 app.use('/api/v1/seller-requests', sellerRequestRoutes);
-app.use('/api/v1/cart',            cartRoutes);
 
-// ─── 404 Handler
+// ─── 404 Handler  
 app.all(/(.*)/, (req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({
     status: 'Fail',
