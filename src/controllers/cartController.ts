@@ -1,4 +1,3 @@
-/// controllers/cartController.ts
 import type { Request, Response } from 'express';
 import { prisma } from '../config/prisma.js'; 
 import { addToCartSchema, updateCartItemSchema } from '../validator/cartValidator.js';
@@ -136,7 +135,7 @@ export const updateCartItem = async (req: Request, res: Response): Promise<void>
     if (validation.success === false) {
       const issue = validation.error?.issues?.[0];
       res.status(400).json({
-        
+
         status: 'Error',
         message: issue?.message ?? 'Invalid request data',
       });

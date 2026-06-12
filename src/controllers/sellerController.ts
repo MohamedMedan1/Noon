@@ -1,97 +1,40 @@
 import type { Request, Response } from 'express';
-import { prisma } from '../config/prisma.js';
-import { sellerProfileSchema } from '../validator/authValidator.js';
-
-export const getSellerProfile = async (req: Request, res: Response): Promise<void> => {
-  try {
-    if (!req.user?.id) {
-      res.status(401).json({ status: 'Error', message: 'Not authenticated' });
-      return;
-    }
-
-    const sellerProfile = await prisma.sellerProfile.findUnique({
-      where: { userId: req.user.id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            phone: true,
-          },
-        },
-      },
-    });
-
-    if (!sellerProfile) {
-      res.status(404).json({
-        status: 'Error',
-        message: 'Seller profile not found. Please create your store profile first.',
-      });
-      return;
-    }
-
-    res.status(200).json({
-      status: 'Success',
-      data: { sellerProfile },
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      status: 'Error',
-      message: 'Internal server error',
-      ...(process.env.NODE_ENV === 'development' && { error: error.message }),
-    });
+import * as sellerService from '../services/sellerServices.js';
+import type { Prisma } from '../generated/prisma/index.js';
+import asyncHandler from 'express-async-handler';
+export const getSellerProfile = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  if (!req.user?.id) { 
+    res.status(401).json({ status: 'Error', message: 'Not authenticated' });
+    return; 
   }
-};
 
-export const updateSellerProfile = async (req: Request, res: Response): Promise<void> => {
-  try {
-    if (!req.user?.id) {
-      res.status(401).json({ status: 'Error', message: 'Not authenticated' });
-      return;
-    }
-
-    const validation = sellerProfileSchema.safeParse(req.body);
-    if (validation.success === false) {
-      const issue = validation.error?.issues?.[0];
-      res.status(400).json({
-        status: 'Error',
-        message: issue?.message ?? 'Invalid request data',
-      });
-      return;
-    }
-
-    // هنا بنشيل أي حقل قيمته undefined عشان نرضي الـ exactOptionalPropertyTypes
-    const profileData = Object.fromEntries(
-      Object.entries(validation.data).filter(([_, value]) => value !== undefined)
-    );
-
-    const existingProfile = await prisma.sellerProfile.findUnique({
-      where: { userId: req.user.id },
-    });
-
-    const sellerProfile = await prisma.sellerProfile.upsert({
-      where: { userId: req.user.id },
-      update: profileData,
-      create: {
-        userId: req.user.id,
-        storeName: validation.data.storeName,
-        ...profileData,
-      },
-    });
-
-    res.status(200).json({
-      status: 'Success',
-      message: existingProfile
-        ? 'Seller profile updated successfully'
-        : 'Seller profile created successfully',
-      data: { sellerProfile },
-    });
-  } catch (error: any) {
-    res.status(500).json({
-      status: 'Error',
-      message: 'Internal server error',
-      ...(process.env.NODE_ENV === 'development' && { error: error.message }),
-    });
+  const sellerProfile = await sellerService.findSellerProfileByUserId(req.user.id);
+  if (!sellerProfile) {
+    res.status(404).json({ status: 'Error', message: 'Seller profile not found.' });
+    return;
   }
-};
+
+  res.status(200).json({ status: 'Success', data: { sellerProfile } });
+});
+
+export const updateSellerProfile = asyncHandler(async (req: Request, res: Response): Promise<void> => {
+  if (!req.user?.id) {
+    res.status(401).json({ status: 'Error', message: 'Not authenticated' });
+    return;
+  }
+
+  const cleanData = Object.fromEntries(
+    Object.entries(req.body).filter(([_, value]) => value !== undefined)
+  ) as Prisma.SellerProfileUpdateInput;
+
+  try {
+    const sellerProfile = await sellerService.upsertSellerProfileService(req.user.id, req.body.storeName, cleanData);
+    res.status(200).json({ status: 'Success', message: 'Seller profile saved successfully', data: { sellerProfile } });
+  } catch (error: any) {
+    if (error.message === 'STORE_NAME_REQUIRED_FOR_CREATION') {
+      res.status(400).json({ status: 'Error', message: 'Store name is absolutely required to create a brand new profile.' });
+    } else {
+      throw error;
+    }
+  }
+});
