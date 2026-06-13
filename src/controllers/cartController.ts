@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
-import * as cartService from '../services/cartServices.js';
+import * as cartService from '../services/cartService.js';
 import asyncHandler from 'express-async-handler';
+
 export const getCart = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   if (!req.user?.id) {
     res.status(401).json({ status: 'Error', message: 'Not authenticated' });
@@ -13,9 +14,8 @@ export const getCart = asyncHandler(async (req: Request, res: Response): Promise
     return;
   }
 
-  const total = cart.cartItems.reduce((sum, item) => {
-    const price = Number(item.product?.price ?? 0);
-    return sum + price * item.quantity;
+  const total = cart.cartItems.reduce((sum: number, item: any) => {
+  return sum + Number(item.product?.price ?? 0) * item.quantity;
   }, 0);
 
   res.status(200).json({ status: 'Success', data: { cart: { ...cart, total } } });
