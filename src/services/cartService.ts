@@ -1,4 +1,5 @@
 import { prisma } from '../config/prisma.js';
+import type { Prisma } from '../generated/prisma/client.js';
 
 export const getCartByUserId = async (userId: string) => {
   return await prisma.cart.findUnique({
@@ -14,7 +15,7 @@ export const getCartByUserId = async (userId: string) => {
 };
 
 export const safeAddItemToCartService = async (userId: string, productId: string, requestedQuantity: number) => {
-  return await prisma.$transaction(async (tx) => {
+  return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const product = await tx.product.findUnique({ where: { id: productId } });
     if (!product) throw new Error('PRODUCT_NOT_FOUND');
 
@@ -28,7 +29,9 @@ export const safeAddItemToCartService = async (userId: string, productId: string
       where: { cartId_productId: { cartId: cart.id, productId } },
     });
 
-    const totalRequestedQuantity = existingItem ? existingItem.quantity + requestedQuantity : requestedQuantity;
+    const totalRequestedQuantity = existingItem
+      ? existingItem.quantity + requestedQuantity
+      : requestedQuantity;
 
     if (product.stock < totalRequestedQuantity) {
       throw new Error(`INSUFFICIENT_STOCK:${existingItem?.quantity || 0}:${product.stock}`);
@@ -43,7 +46,7 @@ export const safeAddItemToCartService = async (userId: string, productId: string
 };
 
 export const safeUpdateCartItemQuantityService = async (userId: string, itemId: string, newQuantity: number) => {
-  return await prisma.$transaction(async (tx) => {
+  return await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     const cartItem = await tx.cartItem.findFirst({
       where: { id: itemId, cart: { userId } },
       include: { product: true },
