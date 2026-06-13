@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import * as requestService from '../services/sellerRequestService.js';
-import type { Prisma } from '../generated/prisma/index.js';
+import type { Prisma } from '../generated/prisma/client.js';
 
 export const submitSellerRequest = async (req: Request, res: Response): Promise<void> => {
   if (!req.user?.id) {

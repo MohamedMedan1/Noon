@@ -1,4 +1,4 @@
-import type { Prisma } from '../generated/prisma/index.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import { prisma } from '../config/prisma.js';
 
 export const findSellerProfileByUserId = async (userId: string) => {

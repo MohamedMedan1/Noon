@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { submitSellerRequest } from '../controllers/sellerRequestController.js';
 import { protect, restrictTo } from '../middlewares/authMiddleware.js';
-import { validate } from '../middlewares/validateMiddleware.js';
+import { validate } from '../middlewares/validate.js';
 import { sellerRequestSchema } from '../schemas/authSchema.js';
 
 const router = Router();

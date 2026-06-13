@@ -15,7 +15,7 @@ export const signupSchema = z.object({
     .max(15, { message: 'Name cannot exceed 15 characters' }),
 });
 
-// Login — email (Unified name to fix loginEmailSchema import error)
+// Login — email 
 export const loginEmailSchema = z.object({
   email: z
     .string()

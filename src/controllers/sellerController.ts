@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express';
 import * as sellerService from '../services/sellerServices.js';
-import type { Prisma } from '../generated/prisma/index.js';
+import type { Prisma } from '../generated/prisma/client.js';
 import asyncHandler from 'express-async-handler';
 export const getSellerProfile = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   if (!req.user?.id) { 

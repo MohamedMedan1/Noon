@@ -2,7 +2,7 @@ import type { Request, Response } from 'express';
 import * as adminService from '../services/adminService.js';
 
 export const getPendingRequests = async (req: Request, res: Response): Promise<void> => {
-  const requests = await adminService.fetchAllPendingRequests();
+  const requests = await adminService.fetchPendingSellerRequests();
   res.status(200).json({ status: 'Success', count: requests.length, data: { requests } });
 };
 
@@ -24,7 +24,8 @@ export const approveSellerRequest = async (req: Request, res: Response): Promise
     return;
   }
 
-  await adminService.executeApproveSellerTransaction(requestId, req.user.id, sellerRequest);
+
+await adminService.approveSellerRequestService(requestId, req.user!.id, sellerRequest.userId, sellerRequest);
   res.status(200).json({ status: 'Success', message: 'Seller request approved. User has been upgraded to Seller.' });
 };
 
@@ -53,6 +54,6 @@ export const rejectSellerRequest = async (req: Request, res: Response): Promise<
     return;
   }
 
-  await adminService.executeRejectSellerService(requestId, req.user.id, adminNotes.trim());
+await adminService.rejectSellerRequestService(requestId, req.user!.id, adminNotes.trim());
   res.status(200).json({ status: 'Success', message: 'Seller request rejected. User can revise and resubmit.' });
 };

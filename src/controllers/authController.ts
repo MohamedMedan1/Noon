@@ -3,12 +3,13 @@ import { sendOtpEmail } from '../utils/sendEmail.js';
 import * as authService from '../services/authServices.js';
 import * as adminService from '../services/adminService.js';
 import asyncHandler from 'express-async-handler';
+
 export const signupWithEmail = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { email, name } = req.body;
 
-  const existingUser = await authService.findUserByEmail(email); 
+  const existingUser = await authService.findUserByEmail(email);
   if (existingUser) {
-    res.status(409).json({ status: 'Error', message: 'This email is already registered. Please log in instead.' });
+    res.status(200).json({ status: 'Success', message: 'If this email is not registered, an OTP has been sent.' });
     return;
   }
 
@@ -23,7 +24,7 @@ export const signupWithEmail = asyncHandler(async (req: Request, res: Response):
     console.log(`[Dev] Signup OTP for ${email}: ${otp}`);
   }
 
-  res.status(201).json({ status: 'Success', message: 'Account created! Please check your email for the OTP.' });
+  res.status(201).json({ status: 'Success', message: 'If this email is not registered, an OTP has been sent.' });
 });
 
 export const loginWithEmail = asyncHandler(async (req: Request, res: Response): Promise<void> => {
@@ -64,7 +65,17 @@ export const verifyOtp = asyncHandler(async (req: Request, res: Response): Promi
   const { email, otp } = req.body;
   const user = await authService.findUserByEmail(email);
 
-  if (!user?.otp || !user?.otpExpiresAt || new Date() > user.otpExpiresAt) {
+  if (!user) {
+    res.status(400).json({ status: 'Error', message: 'Invalid request.' });
+    return;
+  }
+
+  if (user.isVerified) {
+    res.status(400).json({ status: 'Error', message: 'Account is already verified.' });
+    return;
+  }
+
+  if (!user.otp || !user.otpExpiresAt || new Date() > user.otpExpiresAt) {
     res.status(400).json({ status: 'Error', message: 'Invalid or expired OTP' });
     return;
   }
@@ -107,6 +118,15 @@ export const loginWithPassword = asyncHandler(async (req: Request, res: Response
 
 export const createAdminBySuper = asyncHandler(async (req: Request, res: Response): Promise<void> => {
   const { email, name } = req.body;
-  const admin = await adminService.createAdminAccountService(email, name);
-  res.status(201).json({ status: 'Success', message: 'Admin account created successfully', data: { admin } });
+
+  try {
+    const admin = await adminService.createAdminAccountService(email, name);
+    res.status(201).json({ status: 'Success', message: 'Admin account created successfully', data: { admin } });
+  } catch (error: any) {
+    if (error.message === 'EMAIL_ALREADY_EXISTS') {
+      res.status(409).json({ status: 'Error', message: 'This email is already in use.' });
+    } else {
+      throw error;
+    }
+  }
 });

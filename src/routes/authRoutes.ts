@@ -1,5 +1,4 @@
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
 import {
   signupWithEmail,
   loginWithEmail,
@@ -9,7 +8,7 @@ import {
   createAdminBySuper,
 } from '../controllers/authController.js';
 import { protect, restrictTo } from '../middlewares/authMiddleware.js';
-import { validate } from '../middlewares/validateMiddleware.js';
+import { validate } from '../middlewares/validate.js';
 
 import {
   signupSchema,
@@ -22,20 +21,20 @@ import {
  
 const router = Router();
 
-const authLimiter = rateLimit({
+/*const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: { status: 'Error', message: 'Too many requests from this IP. Please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
-});
+});*/
 
-router.post('/signup', authLimiter, validate(signupSchema), signupWithEmail);
-router.post('/login', authLimiter, validate(loginEmailSchema), loginWithEmail);
-router.post('/verify-otp', authLimiter, validate(verifyOtpSchema), verifyOtp);
-router.post('/resend-otp', authLimiter, validate(resendOtpSchema), resendOtp);
+router.post('/signup', validate(signupSchema), signupWithEmail);
+router.post('/login', validate(loginEmailSchema), loginWithEmail);
+router.post('/verify-otp', validate(verifyOtpSchema), verifyOtp);
+router.post('/resend-otp', validate(resendOtpSchema), resendOtp);
 
-router.post('/login-password', authLimiter, validate(loginPasswordSchema), loginWithPassword);
+router.post('/login-password', validate(loginPasswordSchema), loginWithPassword);
 
 router.post(
   '/create-admin', 
