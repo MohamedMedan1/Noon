@@ -16,4 +16,4 @@ export const validate = (schema: ZodSchema) => {
     req.body = validation.data;
     next();
   };
-};
+}; 

@@ -2,11 +2,7 @@ import express, { type NextFunction, type Request, type Response } from 'express
 import cors from 'cors';
 import helmet from 'helmet';
 
-import authRoutes from './routes/authRoutes.js';
-import adminRoutes from './routes/adminRoutes.js';
-import sellerRoutes from './routes/sellerRoutes.js';
-import userRoutes from './routes/userRoutes.js';
-import sellerRequestRoutes from './routes/sellerRequestRoutes.js';
+
 
 const app = express();
 
@@ -15,12 +11,7 @@ app.use(helmet());
 app.use(cors({ origin: process.env.CLIENT_URL || '*' })); 
 app.use(express.json());
 
-// ─── Routes
-app.use('/api/v1/auth',            authRoutes);
-app.use('/api/v1/admin',           adminRoutes);
-app.use('/api/v1/users',           userRoutes);
-app.use('/api/v1/sellers',         sellerRoutes);
-app.use('/api/v1/seller-requests', sellerRequestRoutes);
+
 
 // ─── 404 Handler  
 app.all(/(.*)/, (req: Request, res: Response, next: NextFunction) => {
