@@ -9,11 +9,12 @@ const filterImages = (
   cb: FileFilterCallback,
 ) => {
   const allowedExtensions = ["png", "jpeg", "jfif", "jpg"];
-  const fileExtension = String(file.originalname.split(".")[1]).toLowerCase();
+  const fileExtension = String(file.originalname.split(".").pop()).toLowerCase();
   if (allowedExtensions.includes(fileExtension)) {
     cb(null, true);
   } else {
-    // We will handle this error later
+    // We will handle this error later with AppError
+    cb(null, false);
   }
 };
 
