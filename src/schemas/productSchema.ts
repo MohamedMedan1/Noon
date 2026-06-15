@@ -1,14 +1,27 @@
 import z from "zod";
 
-const imageFileSchema = z.object({
-  fieldname: z.string(),
-  originalname: z.string(),
-  mimetype: z.string().refine((val) => val.startsWith("image/"), {
-    message: "Only image files are allowed",
-  }),
-  buffer: z.instanceof(Buffer),
-  size: z.number().max(5 * 1024 * 1024, "Image size cannot exceed 5MB"),
-});
+const ALLOWED_EXTENSIONS = ["jpg", "jpeg", "jfif", "png"];
+
+const imageFileSchema = z
+  .object({
+    fieldname: z.string(),
+    originalname: z.string(),
+    mimetype: z.string(),
+    buffer: z.instanceof(Buffer),
+    size: z.number().max(5 * 1024 * 1024, "Image size cannot exceed 5MB"),
+  })
+  .refine(
+    (file) => {
+      if (file.mimetype.startsWith("image/")) return true;
+      const fileExtension = file.originalname.split(".").pop()?.toLowerCase();
+      return fileExtension ? ALLOWED_EXTENSIONS.includes(fileExtension) : false;
+    },
+    {
+      message:
+        "Invalid file type. Only JPG, JPEG, JFIF, and PNG images are allowed.",
+      path: ["mimetype"],
+    },
+  );
 
 export const createProductSchema = z.object({
   body: z.object({
