@@ -24,7 +24,7 @@ router
     uploadMulter("single"),
     validate(createBrandSchema),
     generateSlug,
-    uploadImageToCloud("brands"),
+    uploadImageToCloud("brands","single"),
     createNewBrand,
   );
 
@@ -37,7 +37,7 @@ router
     uploadMulter("single"),
     validate(updateBrandSchema),
     generateSlug,
-    uploadImageToCloud("brands"),
+    uploadImageToCloud("brands","single"),
     updateBrand,
   );
 
