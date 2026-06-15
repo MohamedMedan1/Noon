@@ -24,7 +24,7 @@ router
     uploadMulter("single"),
     validate(createCategorySchema),
     generateSlug,
-    uploadImageToCloud("categories"),
+    uploadImageToCloud("categories","single"),
     createNewCategory,
   );
 
@@ -37,7 +37,7 @@ router
     uploadMulter("single"),
     validate(updateCategorySchema),
     generateSlug,
-    uploadImageToCloud("categories"),
+    uploadImageToCloud("categories","single"),
     updateCategory,
   );
 
