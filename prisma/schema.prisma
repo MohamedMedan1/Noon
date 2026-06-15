@@ -20,23 +20,50 @@ enum RequestStatus {
   Rejected
 }
 
+enum OrderStatus {
+  Pending
+  Confirmed
+  Canceled
+  RefundRequested
+  RefundedRejected
+  Refunded
+}
+
+enum PaymentStatus {
+  Pending
+  Accepted
+  Rejected
+}
+
+enum PaymentMethods {
+  VodafoneCash
+  InstaPay
+}
+
+enum RefundRequestStatus {
+  Pending
+  Accepted
+  Rejected
+}
+
 model User {
   id           String    @id @default(uuid())
   name         String?
   email        String    @unique
-  password     String
+  password     String?
   phone        String?   @unique
   address      String?
   role         Role      @default(Customer)
   isVerified   Boolean   @default(false)
   otp          String?
   otpExpiresAt DateTime?
-
   created_at    DateTime       @default(now())
   updated_at    DateTime       @updatedAt
   cart          Cart?
   sellerProfile SellerProfile?
   sellerRequest SellerRequest?
+  orders        Order[]
+  reviews       Review[]
 }
 
 model SellerRequest {
@@ -96,25 +123,27 @@ model CartItem {
 }
 
 model Product {
-  id                 String     @id @default(uuid())
+  id                 String      @id @default(uuid())
   name               String
-  slug               String     @unique
+  slug               String      @unique
   description        String
   price              Float
-  avgRatings         Float      @default(0.0)
-  stock              Int        @default(0)
+  avgRatings         Float       @default(0.0)
+  stock              Int         @default(0)
   image              String
   imagePublicId      String
   subImages          String[]
   subImagesPublicIds String[]
-  isActive           Boolean    @default(true)
-  category           Category   @relation(fields: [categoryId], references: [id])
+  isActive           Boolean     @default(true)
+  category           Category    @relation(fields: [categoryId], references: [id])
   categoryId         String
-  brand              Brand      @relation(fields: [brandId], references: [id], onDelete: Restrict)
+  brand              Brand       @relation(fields: [brandId], references: [id], onDelete: Restrict)
   brandId            String
-  created_at         DateTime   @default(now())
-  updated_at         DateTime   @updatedAt
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @updatedAt
   cartItems          CartItem[]
+  orderItem          OrderItem[]
+  reviews            Review[]
 }
 
 model Category {
@@ -142,4 +171,72 @@ model Brand {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   products      Product[]
+}
+
+model Order {
+  id             String          @id @default(uuid())
+  orderPrice     Float
+  totalPrice     Float
+  discount       Float           @default(0)
+  status         OrderStatus     @default(Pending)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  userId         String
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  payment        Payment?
+  orderItem      OrderItem[]
+  refundRequests RefundRequest[]
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  orderId     String
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productId   String
+  quantity    Int
+  pricePerOne Float
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+}
+
+model Payment {
+  id                String         @id @default(uuid())
+  transactionId     String         @unique
+  paidImage         String
+  PaidImagePublicId String
+  totalPaid         Float
+  paymentMethod     PaymentMethods
+  status            PaymentStatus  @default(Pending)
+  order             Order          @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  orderId           String         @unique
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
+}
+
+model RefundRequest {
+  id            String              @id @default(uuid())
+  reason        String
+  image         String?
+  imagePublicId String?
+  order         Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId       String
+  status        RefundRequestStatus @default(Pending)
+  created_at    DateTime            @default(now())
+  updated_at    DateTime            @updatedAt
+}
+
+model Review {
+  id       String  @id @default(uuid())
+  comment  String
+  rating   Int
+  isActive Boolean @default(true)
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId])
 }
