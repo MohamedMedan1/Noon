@@ -8,10 +8,13 @@ const filterImages = (
   file: Express.Multer.File,
   cb: FileFilterCallback,
 ) => {
-  if (file.mimetype.startsWith("image")) {
+  const allowedExtensions = ["png", "jpeg", "jfif", "jpg"];
+  const fileExtension = String(file.originalname.split(".").pop()).toLowerCase();
+  if (allowedExtensions.includes(fileExtension)) {
     cb(null, true);
   } else {
-    // We will handle this error later
+    // We will handle this error later with AppError
+    cb(null, false);
   }
 };
 
