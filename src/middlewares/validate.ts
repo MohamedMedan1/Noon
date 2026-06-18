@@ -1,10 +1,20 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { ZodSchema } from 'zod';
+import { z } from 'zod';
 
-export const validate = (schema: ZodSchema) => {
-  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const validation = schema.safeParse(req.body);
-    
+type RequestSchema = z.ZodObject<{
+  body: z.ZodTypeAny;
+  params: z.ZodTypeAny;
+  query: z.ZodTypeAny;
+}>;
+
+export const validate = <T extends RequestSchema>(schema: T) => {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    const validation = schema.safeParse({
+      body: req.body,
+      params: req.params,
+      query: req.query,
+    });
+
     if (!validation.success) {
       res.status(400).json({
         status: 'Error',
@@ -13,7 +23,8 @@ export const validate = (schema: ZodSchema) => {
       return;
     }
 
-    req.body = validation.data;
-    next();
+    req.body = validation.data.body;
+    req.params = validation.data.params as typeof req.params;
+      next();
   };
-}; 
+};
