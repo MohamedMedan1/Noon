@@ -15,6 +15,7 @@ import productRouter from "./routes/productRoutes.js";
 import cartRouter from "./routes/cartRoutes.js";
 import orderRouter from "./routes/orderRoutes.js";
 import refundRouter from "./routes/refundRoutes.js";
+import wishlistRouter from "./routes/wishlistRoutes.js";
 
 const app = express();
 
@@ -32,6 +33,7 @@ app.use("/api/v1/seller-requests", sellerRequestRoutes);
 app.use("/api/v1/cart", cartRouter);
 app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/refunds", refundRouter);
+app.use("/api/v1/wishList", wishlistRouter);
 
 app.all(/.*/, (req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({
