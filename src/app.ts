@@ -12,6 +12,9 @@ import sellerRequestRoutes from "./routes/sellerRequestRoutes.js";
 import brandRouter from "./routes/brandRoutes.js";
 import categoryRouter from "./routes/categoryRoutes.js";
 import productRouter from "./routes/productRoutes.js";
+import cartRouter from "./routes/cartRoutes.js";
+import orderRouter from "./routes/orderRoutes.js";
+import refundRouter from "./routes/refundRoutes.js";
 
 const app = express();
 
@@ -26,6 +29,9 @@ app.use("/api/v1/admin", adminRoutes);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/sellers", sellerRoutes);
 app.use("/api/v1/seller-requests", sellerRequestRoutes);
+app.use("/api/v1/cart", cartRouter);
+app.use("/api/v1/orders", orderRouter);
+app.use("/api/v1/refunds", refundRouter);
 
 app.all(/.*/, (req: Request, res: Response, next: NextFunction) => {
   res.status(404).json({
