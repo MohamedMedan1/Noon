@@ -7,13 +7,9 @@ export const getCartByUserId = async (userId: string) => {
     include: {
       cartItems: {
         include: {
-          product: {
-            select: {
-              name: true,
-              price:true
-          }}
-        }
-      }
+          product: { select: { id: true, name: true, price: true, image: true, stock: true } },
+        },
+      },
     },
   });
 };

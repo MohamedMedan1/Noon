@@ -10,7 +10,7 @@ export const validate =
         query: req.query,
         params: req.params,
         file: req.file,
-        files: req.files
+        files: req.files,
       });
       return next();
     } catch (error) {

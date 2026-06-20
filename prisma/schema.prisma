@@ -47,23 +47,26 @@ enum RefundRequestStatus {
 }
 
 model User {
-  id           String    @id @default(uuid())
-  name         String?
-  email        String    @unique
-  password     String?
-  phone        String?   @unique
-  address      String?
-  role         Role      @default(Customer)
-  isVerified   Boolean   @default(false)
-  otp          String?
-  otpExpiresAt DateTime?
-  created_at    DateTime       @default(now())
-  updated_at    DateTime       @updatedAt
-  cart          Cart?
-  sellerProfile SellerProfile?
-  sellerRequest SellerRequest?
-  orders        Order[]
-  reviews       Review[]
+  id             String          @id @default(uuid())
+  name           String?
+  email          String          @unique
+  password       String?
+  phone          String?         @unique
+  address        String?
+  role           Role            @default(Customer)
+  isVerified     Boolean         @default(false)
+  otp            String?
+  otpExpiresAt   DateTime?
+  created_at     DateTime        @default(now())
+  updated_at     DateTime        @updatedAt
+  cart           Cart?
+  sellerProfile  SellerProfile?
+  sellerRequest  SellerRequest?
+  orders         Order[]
+  reviews        Review[]
+  refundRequests RefundRequest[]
+  wishlist       Wishlist?
+  reviewComments ReviewComment[]
 }
 
 model SellerRequest {
@@ -85,19 +88,20 @@ model SellerRequest {
 }
 
 model SellerProfile {
-  id               String   @id @default(uuid())
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId           String   @unique
+  id               String    @id @default(uuid())
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String    @unique
   storeName        String
   storeDescription String?
   storeLogo        String?
-  businessEmail    String?  @unique
+  businessEmail    String?   @unique
   businessPhone    String?
   businessAddress  String?
-  taxNumber        String?  @unique
-  isActive         Boolean  @default(true)
-  created_at       DateTime @default(now())
-  updated_at       DateTime @updatedAt
+  taxNumber        String?   @unique
+  isActive         Boolean   @default(true)
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  products         Product[]
 }
 
 model Cart {
@@ -123,27 +127,30 @@ model CartItem {
 }
 
 model Product {
-  id                 String      @id @default(uuid())
+  id                 String         @id @default(uuid())
   name               String
-  slug               String      @unique
+  slug               String         @unique
   description        String
   price              Float
-  avgRatings         Float       @default(0.0)
-  stock              Int         @default(0)
+  avgRatings         Float          @default(0.0)
+  stock              Int            @default(0)
   image              String
   imagePublicId      String
   subImages          String[]
   subImagesPublicIds String[]
-  isActive           Boolean     @default(true)
-  category           Category    @relation(fields: [categoryId], references: [id])
+  isActive           Boolean        @default(true)
+  category           Category       @relation(fields: [categoryId], references: [id])
   categoryId         String
-  brand              Brand       @relation(fields: [brandId], references: [id], onDelete: Restrict)
+  brand              Brand          @relation(fields: [brandId], references: [id], onDelete: Restrict)
   brandId            String
-  created_at         DateTime    @default(now())
-  updated_at         DateTime    @updatedAt
+  seller             SellerProfile  @relation(fields: [sellerId], references: [id])
+  sellerId           String
+  created_at         DateTime       @default(now())
+  updated_at         DateTime       @updatedAt
   cartItems          CartItem[]
   orderItem          OrderItem[]
   reviews            Review[]
+  wishlistItems      WishlistItem[]
 }
 
 model Category {
@@ -171,6 +178,26 @@ model Brand {
   created_at    DateTime  @default(now())
   updated_at    DateTime  @updatedAt
   products      Product[]
+}
+
+model Wishlist {
+  id         String         @id @default(cuid())
+  userId     String         @unique
+  user       User           @relation(fields: [userId], references: [id])
+  items      WishlistItem[]
+  created_at DateTime       @default(now())
+  updated_at DateTime       @updatedAt
+}
+
+model WishlistItem {
+  id         String   @id @default(cuid())
+  wishlistId String
+  productId  String
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id])
+  created_at DateTime @default(now())
+
+  @@unique([wishlistId, productId])
 }
 
 model Order {
@@ -219,24 +246,37 @@ model RefundRequest {
   reason        String
   image         String?
   imagePublicId String?
+  rejectReason  String?
   order         Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
   orderId       String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
   status        RefundRequestStatus @default(Pending)
   created_at    DateTime            @default(now())
   updated_at    DateTime            @updatedAt
 }
 
 model Review {
-  id       String  @id @default(uuid())
-  comment  String
-  rating   Int
-  isActive Boolean @default(true)
-  userId   String
-  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id        String          @id @default(uuid())
+  rating    Int
+  isActive  Boolean         @default(true)
+  userId    String
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   productId String
-  product   Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  product   Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+  Comments  ReviewComment[]
 
   @@unique([userId, productId])
+}
+
+model ReviewComment {
+  id        String   @id @default(uuid())
+  reviewId  String
+  userId    String
+  text      String
+  createdAt DateTime @default(now())
+  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

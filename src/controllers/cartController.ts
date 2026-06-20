@@ -9,13 +9,13 @@ export const getCart = asyncHandler(async (req: Request, res: Response): Promise
   }
 
   const cart = await cartService.getCartByUserId(req.user.id);
-  if (!cart || !cart.cartItems || cart?.cartItems?.length === 0) {
+  if (!cart || !cart.cartItems || cart.cartItems.length === 0) {
     res.status(200).json({ status: 'Success', data: { cart: { cartItems: [], total: 0 } } });
     return;
   }
 
   const total = cart.cartItems.reduce((sum: number, item: any) => {
-  return sum + (Number(item.product?.price ?? 0) * item.quantity);
+  return sum + Number(item.product?.price ?? 0) * item.quantity;
   }, 0);
 
   res.status(200).json({ status: 'Success', data: { cart: { ...cart, total } } });
