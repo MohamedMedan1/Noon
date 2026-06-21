@@ -6,7 +6,7 @@ export const validate =
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       await schema.parseAsync({
-        body: req.body,
+        body: req.body || {},
         query: req.query,
         params: req.params,
         file: req.file,
@@ -14,17 +14,6 @@ export const validate =
       });
       return next();
     } catch (error) {
-      if (error instanceof ZodError) {
-        res.status(400).json({
-          status: "Fail",
-          errors: error.issues.map((err) => ({
-            field: err.path[1] || err.path[0],
-            message: err.message,
-          })),
-        });
-        return;
-      }
-
       return next(error);
     }
   };

@@ -16,6 +16,7 @@ import cartRouter from "./routes/cartRoutes.js";
 import orderRouter from "./routes/orderRoutes.js";
 import refundRouter from "./routes/refundRoutes.js";
 import wishlistRouter from "./routes/wishlistRoutes.js";
+import { GlobalErrorHandler } from "./controllers/errorController.js";
 
 const app = express();
 
@@ -41,5 +42,8 @@ app.all(/.*/, (req: Request, res: Response, next: NextFunction) => {
     message: `Can't find ${req.originalUrl} on the server`,
   });
 });
+
+// Error handling middleware
+app.use(GlobalErrorHandler);
 
 export default app;

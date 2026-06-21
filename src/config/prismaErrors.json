@@ -1,0 +1,58 @@
+{
+  "P1000": {
+    "statusCode": 500,
+    "message": "Database authentication failed. Please check database credentials."
+  },
+  "P1001": {
+    "statusCode": 500,
+    "message": "Cannot connect to the database server. Please ensure the database is running."
+  },
+  "P1002": {
+    "statusCode": 504,
+    "message": "Database server connection timeout. Please try again."
+  },
+  "P2000": {
+    "statusCode": 400,
+    "message": "The provided value is too long for this field's type."
+  },
+  "P2001": {
+    "statusCode": 404,
+    "message": "The record searched for in the where condition does not exist."
+  },
+  "P2002": {
+    "statusCode": 400,
+    "message": "A record with this unique value already exists. Please use another value."
+  },
+  "P2003": {
+    "statusCode": 400,
+    "message": "Foreign key constraint failed. The related record does not exist."
+  },
+  "P2004": {
+    "statusCode": 400,
+    "message": "A database constraint failed."
+  },
+  "P2005": {
+    "statusCode": 400,
+    "message": "The value stored in the database is invalid for the field's type."
+  },
+  "P2006": {
+    "statusCode": 400,
+    "message": "The provided value is not valid."
+  },
+  "P2011": {
+    "statusCode": 400,
+    "message": "Null constraint violation. A required field cannot be empty."
+  },
+  "P2015": {
+    "statusCode": 400,
+    "message": "A related record could not be found."
+  },
+  "P2024": {
+    "statusCode": 503,
+    "message": "Database connection pool timeout. Server is under heavy load."
+  },
+  "P2025": {
+    "statusCode": 404,
+    "message": "The requested record was not found or has already been deleted."
+  }
+}
