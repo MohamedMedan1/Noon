@@ -65,7 +65,7 @@ export const createOrderService = async (
     ),
   );
 
-  const orgit der = await prisma.$transaction(async (tx) => {
+  const order = await prisma.$transaction(async (tx) => {
     const newOrder = await tx.order.create({
       data: {
         totalPrice: totalCartPrice,
