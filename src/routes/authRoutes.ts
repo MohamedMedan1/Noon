@@ -18,7 +18,7 @@ import {
   loginPasswordSchema,
   createAdminSchema,
 }    from '../schemas/authSchema.js';
- 
+
 const router = Router();
 
 /*const authLimiter = rateLimit({

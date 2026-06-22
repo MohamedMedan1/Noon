@@ -1,6 +1,8 @@
 import { prisma } from "../config/prisma.js";
+import { AppError } from "../utils/appError.js";
+import { PrismaQueryFeatures } from "../utils/prismaQueryFeatures.js";
 
-export const getAllOrdersService = async (userId: string, userRole: string) => {
+export const getAllOrdersService = async (userId: string, userRole: string,queryString:any) => {
   let getCondition = {};
 
   if (userRole === "Customer") {
@@ -19,7 +21,13 @@ export const getAllOrdersService = async (userId: string, userRole: string) => {
     };
   }
 
-  const orders = await prisma.order.findMany({ where: getCondition });
+  const features = new PrismaQueryFeatures(queryString, getCondition)
+      .filter()
+      .sort()
+      .limitFields()
+      .paginate();
+
+  const orders = await features.execute(prisma.order);
 
   return orders;
 };
@@ -29,7 +37,6 @@ export const createOrderService = async (
   userId: string,
   imageId: string,
 ) => {
-
   const cart = await prisma.cart.findUnique({
     where: {
       userId,
@@ -48,8 +55,7 @@ export const createOrderService = async (
   });
 
   if (!cart?.cartItems || cart?.cartItems.length === 0) {
-    // We will handle errors later
-    throw new Error("Your cart is still empty!");
+    throw new AppError("Your cart is still empty!", 400);
   }
 
   const totalCartPrice = Number(
@@ -59,7 +65,7 @@ export const createOrderService = async (
     ),
   );
 
-  const order = await prisma.$transaction(async (tx) => {
+  const orgit der = await prisma.$transaction(async (tx) => {
     const newOrder = await tx.order.create({
       data: {
         totalPrice: totalCartPrice,
@@ -147,8 +153,7 @@ export const getOrderService = async (
   });
 
   if (!order || !order.orderItem || order.orderItem.length === 0) {
-    // We will handle errors later
-    throw new Error("There is no order or order items with that Id");
+    throw new AppError("There is no order or order items with that Id", 404);
   }
 
   return order;
@@ -162,14 +167,13 @@ export const approveOrderService = async (orderId: string) => {
   });
 
   if (!order) {
-    // We will handle this error later
-    throw new Error("There is no order with that id");
+    throw new AppError("There is no order with that id", 404);
   }
 
   if (order?.status !== "Pending") {
-    // We will handle this error later
-    throw new Error(
+    throw new AppError(
       `You can only approve order when is it still Pending now it is ${order.status}!`,
+      403,
     );
   }
 
@@ -193,14 +197,13 @@ export const cancelOrderService = async (orderId: string) => {
   });
 
   if (!order) {
-    // We will handle this error later
-    throw new Error("There is no order with that id");
+    throw new AppError("There is no order with that id", 404);
   }
 
   if (order?.status !== "Pending") {
-    // We will handle this error later
-    throw new Error(
-      `You can only cancle your order when is it still Pending now it is ${order.status}!`,
+    throw new AppError(
+      `You can only cancel order when is it still Pending now it is ${order.status}!`,
+      403,
     );
   }
 
@@ -211,8 +214,7 @@ export const cancelOrderService = async (orderId: string) => {
   });
 
   if (!orderItems || orderItems.length === 0) {
-    // We will handle this error later
-    throw new Error("There is no orderItems with that orderId!");
+    throw new AppError("There is no orderItems with that orderId!",404);
   }
 
   const canceledOrder = await prisma.$transaction(async (tx) => {
@@ -257,19 +259,16 @@ export const refundOrderService = async (
   });
 
   if (!order) {
-    // We will handle this error later
-    throw new Error("There is no order with that id");
+    throw new AppError("There is no order with that id!",404);
   }
 
   if (order.userId !== userId) {
-    // We will handle errors later
-    throw new Error("You can only refund your own orders!");
+    throw new AppError("You can only refund your own orders!",403);
   }
 
   if (["Pending", "Canceled"].includes(order?.status)) {
-    // We will handle this error later
-    throw new Error(
-      `You can only refund your order when is it already Confirmed now it is ${order.status}!`,
+    throw new AppError(
+      `You can only refund your order when is it already Confirmed now it is ${order.status}!`,403,
     );
   }
 

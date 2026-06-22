@@ -1,5 +1,17 @@
 import { cloudinary } from "../config/cloudinary.js";
 import { prisma } from "../config/prisma.js";
+import { AppError } from "../utils/appError.js";
+import { PrismaQueryFeatures } from "../utils/prismaQueryFeatures.js";
+
+export const getAllCategoriesService = async (queryString: any) => {
+  const features = new PrismaQueryFeatures(queryString, { isActive: true })
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  return await features.execute(prisma.category);
+};
 
 export const createCategoryService = async (
   categoryData: any,
@@ -24,8 +36,9 @@ export const getCategoryService = async (categoryId: string) => {
     },
   });
 
-  // We will handle errors later
-  if (!category) throw new Error("There is no category with that Id");
+  if (!category) {
+    throw new AppError("There is no category with that Id", 404);
+  }
 
   return category;
 };
@@ -42,12 +55,12 @@ export const updateCategoryService = async (
     },
   });
 
-  // We will handle this error later
-  if (!category) throw new Error("There is no category with that ID");
+  if (!category) {
+    throw new AppError("There is no category with that Id", 404);
+  }
 
   if (categoryData.parentCategoryId === categoryId) {
-    // We will handle errors later
-    throw new Error("A category cannot be its own parent!");
+    throw new AppError("A category cannot be its own parent!", 400);
   }
 
   if (hasNewImage) await cloudinary.uploader.destroy(category.imagePublicId);
@@ -66,7 +79,15 @@ export const updateCategoryService = async (
 };
 
 export const deleteCategoryService = async (categoryId: string) => {
-  const [category, _] = await prisma.$transaction([
+  const category = await prisma.category.findUnique({
+    where: { id: categoryId },
+  });
+
+  if (!category) {
+    throw new AppError("There is no category with that Id", 404);
+  }
+
+  const [updatedCategory, _] = await prisma.$transaction([
     prisma.category.update({
       where: {
         id: categoryId,
@@ -85,5 +106,5 @@ export const deleteCategoryService = async (categoryId: string) => {
     }),
   ]);
 
-  return category;
+  return updatedCategory;
 };

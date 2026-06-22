@@ -14,6 +14,7 @@ import {
   createCategorySchema,
   updateCategorySchema,
 } from "../schemas/categorySchema.js";
+import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -21,23 +22,32 @@ router
   .route("/")
   .get(getAllCategories)
   .post(
+    protect,
+    restrictTo("SuperAdmin", "Admin"),
     uploadMulter("single"),
     validate(createCategorySchema),
     generateSlug,
-    uploadImageToCloud("categories","single"),
+    uploadImageToCloud("categories", "single"),
     createNewCategory,
   );
 
-router.patch("/:id/status", deleteCategory);
+router.patch(
+  "/:id/status",
+  protect,
+  restrictTo("SuperAdmin", "Admin"),
+  deleteCategory,
+);
 
 router
   .route("/:id")
   .get(getCategory)
   .patch(
+    protect,
+    restrictTo("SuperAdmin", "Admin"),
     uploadMulter("single"),
     validate(updateCategorySchema),
     generateSlug,
-    uploadImageToCloud("categories","single"),
+    uploadImageToCloud("categories", "single"),
     updateCategory,
   );
 

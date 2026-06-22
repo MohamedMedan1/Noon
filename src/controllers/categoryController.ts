@@ -3,6 +3,7 @@ import { prisma } from "../config/prisma.js";
 import {
   createCategoryService,
   deleteCategoryService,
+  getAllCategoriesService,
   getCategoryService,
   updateCategoryService,
 } from "../services/categoryServices.js";
@@ -12,11 +13,7 @@ export const getAllCategories = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const categories = await prisma.category.findMany({
-    where: {
-      isActive: true,
-    },
-  });
+  const categories = await getAllCategoriesService(req.query);
 
   res.status(200).json({
     status: "success",

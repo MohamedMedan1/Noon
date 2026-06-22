@@ -13,7 +13,7 @@ router.get("/",getAllRefunds);
 router.get("/:id", getRefund);
 
 // Apply Authorization
-router.use(restrictTo("SuperAdmin", "Admin"))
+// router.use(restrictTo("SuperAdmin", "Admin"))
 
 router.patch("/:id/accept",handleRefund("accept"));
 router.patch("/:id/reject",validate(rejectRefundSchema),handleRefund("reject"));

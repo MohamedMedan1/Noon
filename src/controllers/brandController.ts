@@ -1,21 +1,18 @@
 import type { NextFunction, Request, Response } from "express";
 import { prisma } from "../config/prisma.js";
-import { createBrandService, deleteBrandService, updateBrandService } from "../services/brandServices.js";
+import { createBrandService, deleteBrandService, getAllBrandsService, updateBrandService } from "../services/brandServices.js";
 
 export const getAllBrands = async (
   req: Request,
   res: Response,
   next: NextFunction,
 ) => {
-  const brands = await prisma.brand.findMany({
-    where: {
-      isActive:true
-    }
-  });
+  const brands = await getAllBrandsService(req.query);
+  
   res.status(200).json({
     status: "success",
+    results: brands.length,
     data: brands,
-    result: brands.length,
   });
 };
 

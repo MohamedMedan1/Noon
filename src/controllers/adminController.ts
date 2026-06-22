@@ -8,7 +8,7 @@ export const getPendingRequests = async (req: Request, res: Response): Promise<v
 
 export const approveSellerRequest = async (req: Request, res: Response): Promise<void> => {
   const requestId = Array.isArray(req.params.requestId) ? req.params.requestId[0] : req.params.requestId;
-  if (!requestId || !req.user?.id) {
+  if (!requestId) {
     res.status(400).json({ status: 'Error', message: 'requestId is required and admin must be logged in' });
     return;
   }
@@ -25,7 +25,7 @@ export const approveSellerRequest = async (req: Request, res: Response): Promise
   }
 
 
-await adminService.approveSellerRequestService(requestId, req.user!.id, sellerRequest.userId, sellerRequest);
+await adminService.approveSellerRequestService(requestId, "req.user!.id", sellerRequest.userId, sellerRequest);
   res.status(200).json({ status: 'Success', message: 'Seller request approved. User has been upgraded to Seller.' });
 };
 

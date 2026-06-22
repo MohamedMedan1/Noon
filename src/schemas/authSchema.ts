@@ -4,11 +4,10 @@ import { z } from "zod";
 export const signupSchema = z.object({
   body: z.object({
     email: z
-      .string()
+      .email({ error: "A valid email is required" })
       .trim()
       .min(1, { error: "Email is required" })
-      .toLowerCase()
-      .email({ error: "A valid email is required" }),
+      .toLowerCase(),
     name: z
       .string()
       .trim()
@@ -21,11 +20,10 @@ export const signupSchema = z.object({
 export const loginEmailSchema = z.object({
   body: z.object({
     email: z
-      .string()
+      .email({ error: "A valid email is required" })
       .trim()
       .min(1, { error: "Email is required" })
-      .toLowerCase()
-      .email({ error: "A valid email is required" }),
+      .toLowerCase(),
   }),
 });
 
@@ -33,11 +31,10 @@ export const loginEmailSchema = z.object({
 export const verifyOtpSchema = z.object({
   body: z.object({
     email: z
-      .string()
+      .email({ error: "A valid email is required" })
       .trim()
       .min(1, { error: "Email is required" })
-      .toLowerCase()
-      .email({ error: "A valid email is required" }),
+      .toLowerCase(),
     otp: z
       .string()
       .trim()
@@ -136,10 +133,9 @@ export const sellerProfileSchema = z.object({
         .max(500, { error: "Description cannot exceed 500 characters" })
         .optional(),
       businessEmail: z
-        .string()
+        .email({ error: "Invalid business email format" })
         .trim()
         .toLowerCase()
-        .email({ error: "Invalid business email format" })
         .optional(),
       businessPhone: z
         .string()
@@ -164,10 +160,9 @@ export const sellerRequestSchema = z.object({
       .max(50),
     storeDescription: z.string().trim().max(500).optional(),
     businessEmail: z
-      .string()
+      .email({ error: "Invalid business email format" })
       .trim()
-      .toLowerCase()
-      .email({ error: "Invalid business email format" }),
+      .toLowerCase(),
     businessPhone: z
       .string()
       .trim()

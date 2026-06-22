@@ -5,6 +5,7 @@ import {
   createProductService,
   deleteImageService,
   deleteProductService,
+  getAllProductsService,
   getProductService,
   updateProductService,
 } from "../services/productServices.js";
@@ -14,17 +15,7 @@ export const getAllProducts = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const products = await prisma.product.findMany({
-    where: {
-      isActive: true,
-      category: {
-        isActive: true,
-      },
-      brand: {
-        isActive: true,
-      },
-    },
-  });
+  const products = await getAllProductsService(req.query);
 
   res.status(200).json({
     status: "success",
@@ -38,7 +29,8 @@ export const createNewProduct = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const product = await createProductService(req.body, req.files?.cloudData);
+  const sellerId = String(req.user?.id);
+  const product = await createProductService(req.body, req.files?.cloudData,sellerId);
 
   res.status(201).json({
     status: "success",

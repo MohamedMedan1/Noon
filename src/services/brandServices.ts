@@ -1,5 +1,17 @@
 import { prisma } from "../config/prisma.js";
 import { cloudinary } from "../config/cloudinary.js";
+import { AppError } from "../utils/appError.js";
+import { PrismaQueryFeatures } from "../utils/prismaQueryFeatures.js";
+
+export const getAllBrandsService = async (queryString:any) => {
+  const features = new PrismaQueryFeatures(queryString, { isActive: true })
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+  
+  return await features.execute(prisma.brand);
+};
 
 export const createBrandService = async (
   brandData: any,
@@ -25,7 +37,9 @@ export const updateBrandService = async (
   });
 
   // We will handle errors later
-  if (!brand) throw new Error();
+  if (!brand) {
+    throw new AppError("There is no brand with that Id!",404)
+  };
 
   // If admin change brand Image then delete the old one
   if (hasNewImage) await cloudinary.uploader.destroy(brand.imagePublicId);
@@ -44,14 +58,18 @@ export const updateBrandService = async (
 };
 
 export const deleteBrandService = async (brandId: string) => {
-  const brand = await prisma.brand.update({
-    where: {
-      id: String(brandId),
-    },
-    data: {
-      isActive: false,
-    },
+  const brand = await prisma.brand.findUnique({
+    where: { id: brandId }
+  });
+
+  if (!brand) {
+    throw new AppError("There is no brand with that Id!", 404);
+  }
+
+  const deletedBrand = await prisma.brand.update({
+    where: { id: brandId },
+    data: { isActive: false },
   });
   
-  return brand;
+  return deletedBrand;
 };

@@ -14,7 +14,7 @@ export const getAllRefunds = async (
   const userId = String(req.user?.id);
   const userRole = String(req.user?.role);
 
-  const refunds = await getAllRefundsService(userId, userRole);
+  const refunds = await getAllRefundsService(userId, userRole,req.query);
 
   res.status(200).json({
     status: "success",

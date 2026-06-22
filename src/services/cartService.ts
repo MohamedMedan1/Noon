@@ -38,7 +38,7 @@ export const safeAddItemToCartService = async (userId: string, productId: string
     }
 
     // <Handle Rece condition> decrament stock of product via add item to cart 
-    await prisma.product.updateMany({
+    await tx.product.updateMany({
       where: {
         id: productId
       },

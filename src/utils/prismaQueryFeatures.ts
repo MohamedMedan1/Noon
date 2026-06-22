@@ -2,33 +2,40 @@ export class PrismaQueryFeatures {
   public prismaArgs: Record<string, any> = {};
   private queryString: Record<string, any>;
 
-  constructor(queryString: Record<string, any>) {
+  constructor(
+    queryString: Record<string, any>,
+    extraConditions: Record<string, any> = {},
+  ) {
     this.queryString = queryString;
+    this.prismaArgs.where = { ...extraConditions };
   }
 
   filter() {
     const queryObj = { ...this.queryString };
-    const excludedFields = ['page', 'sort', 'limit', 'fields'];
+    const excludedFields = ["page", "sort", "limit", "fields"];
     excludedFields.forEach((el) => delete queryObj[el]);
 
-    let queryStr = JSON.stringify(queryObj);
-    
-    this.prismaArgs.where = JSON.parse(queryStr);
+    this.prismaArgs.where = {
+      ...this.prismaArgs.where,
+      ...queryObj,
+    };
+
     return this;
   }
 
   sort() {
     if (this.queryString.sort) {
-      const sortFields = this.queryString.sort.split(',');
-      
+      const sortFields = this.queryString.sort.split(",");
+
       this.prismaArgs.orderBy = sortFields.map((field: string) => {
-        if (field.startsWith('-')) {
-          return { [field.substring(1)]: 'desc' };
+        if (field.startsWith("-")) {
+          return { [field.substring(1)]: "desc" };
         }
-        return { [field]: 'asc' }; 
+        return { [field]: "asc" };
       });
+
     } else {
-      this.prismaArgs.orderBy = { createdAt: 'desc' };
+      this.prismaArgs.orderBy = [{ created_at: "desc" }];
     }
 
     return this;
@@ -36,9 +43,9 @@ export class PrismaQueryFeatures {
 
   limitFields() {
     if (this.queryString.fields) {
-      const fields = this.queryString.fields.split(',');
+      const fields = this.queryString.fields.split(",");
       const selectObj: Record<string, boolean> = {};
-      
+
       fields.forEach((field: string) => {
         selectObj[field] = true;
       });
@@ -59,7 +66,14 @@ export class PrismaQueryFeatures {
     return this;
   }
 
-  async execute(prismaModel: any) {
-    return await prismaModel.findMany(this.prismaArgs);
+  async execute(prismaModel: any, baseArgs: Record<string, any> = {}) {
+    const finalArgs = {
+      ...baseArgs,
+      where: { ...baseArgs.where, ...this.prismaArgs.where },
+      ...this.prismaArgs,
+      ...(this.prismaArgs.select && { include: undefined }),
+    };
+
+    return await prismaModel.findMany(finalArgs);
   }
 }

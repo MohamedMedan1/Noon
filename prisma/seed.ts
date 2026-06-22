@@ -33,7 +33,7 @@ async function main() {
     },
   });
 
-  console.log(` SuperAdmin created: ${superAdmin.email}`);
+  console.log(`SuperAdmin created: ${superAdmin.email}`);
 }
 
 main()

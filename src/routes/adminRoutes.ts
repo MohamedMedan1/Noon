@@ -4,11 +4,11 @@ import { protect, restrictTo } from '../middlewares/authMiddleware.js';
 
 const router = Router();
 
-router.use(protect, restrictTo('Admin', 'SuperAdmin'));
+// router.use(protect, restrictTo('Admin', 'SuperAdmin'));
 
-router.get('/pending-sellers', protect, restrictTo('Admin', 'SuperAdmin'), getPendingRequests);
-router.patch('/approve-seller/:requestId', protect, restrictTo('Admin', 'SuperAdmin'), approveSellerRequest);
-router.patch('/reject-seller/:requestId', protect, restrictTo('Admin', 'SuperAdmin'), rejectSellerRequest);
+router.get('/pending-sellers', getPendingRequests);
+router.patch('/approve-seller/:requestId',approveSellerRequest);
+router.patch('/reject-seller/:requestId',rejectSellerRequest);
 
 
 export default router;

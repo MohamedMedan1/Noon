@@ -1,9 +1,30 @@
 import { cloudinary } from "../config/cloudinary.js";
 import { prisma } from "../config/prisma.js";
+import { AppError } from "../utils/appError.js";
+import { PrismaQueryFeatures } from "../utils/prismaQueryFeatures.js";
+
+export const getAllProductsService = async (queryString: any) => {
+  const features = new PrismaQueryFeatures(queryString, {
+    isActive: true,
+    category: {
+      isActive: true,
+    },
+    brand: {
+      isActive: true,
+    },
+  })
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  return await features.execute(prisma.product);
+};
 
 export const createProductService = async (
   productData: any,
   mainImgId: string,
+  sellerId: string,
 ) => {
   const readyProductData = {
     ...productData,
@@ -12,8 +33,21 @@ export const createProductService = async (
     imagePublicId: mainImgId,
   };
 
+  const sellerProfile = await prisma.sellerProfile.findFirst({
+    where: {
+      userId: sellerId,
+    },
+  });
+
+  if (!sellerProfile) {
+    throw new AppError("There is no seller profile with that Id", 404);
+  }
+
   const product = await prisma.product.create({
-    data: readyProductData,
+    data: {
+      ...readyProductData,
+      sellerId:sellerProfile.id,
+    },
   });
 
   return product;
@@ -34,8 +68,9 @@ export const getProductService = async (productId: string) => {
     },
   });
 
-  // We will handle errors later
-  if (!product) throw new Error("There is no product with that Id");
+  if (!product) {
+    throw new AppError("There is no product with that Id", 404);
+  }
 
   return product;
 };
@@ -52,17 +87,22 @@ export const updateProductService = async (
     },
   });
 
-  // We will handle errors later
-  if (!product) throw new Error("There is no product with that id");
+  if (!product) {
+    throw new AppError("There is no product with that Id", 404);
+  }
 
   if (hasNewImage) await cloudinary.uploader.destroy(product.imagePublicId);
 
+  const readyUpdateData = { ...productData };
+  if (readyUpdateData.price)
+    readyUpdateData.price = Number(readyUpdateData.price);
+  if (readyUpdateData.stock)
+    readyUpdateData.stock = Number(readyUpdateData.stock);
+
   const updateProduct = await prisma.product.update({
-    where: {
-      id: productId,
-    },
+    where: { id: productId },
     data: {
-      ...productData,
+      ...readyUpdateData,
       ...(hasNewImage && { imagePublicId: newImageId }),
     },
   });
@@ -71,7 +111,17 @@ export const updateProductService = async (
 };
 
 export const deleteProductService = async (productId: string) => {
-  const product = await prisma.product.update({
+  const product = await prisma.product.findUnique({
+    where: {
+      id: productId,
+    },
+  });
+
+  if (!product) {
+    throw new AppError("There is no product with that Id", 404);
+  }
+
+  const deletedProduct = await prisma.product.update({
     where: {
       id: productId,
     },
@@ -80,10 +130,7 @@ export const deleteProductService = async (productId: string) => {
     },
   });
 
-  // We will handle errors later
-  if (!product) throw new Error("There is no product with that Id");
-
-  return product;
+  return deletedProduct;
 };
 
 export const addImageService = async (productId: string, productData: any) => {
@@ -93,8 +140,9 @@ export const addImageService = async (productId: string, productData: any) => {
     },
   });
 
-  // We will handle errors later
-  if (!product) throw new Error("There is no product with that Id");
+  if (!product) {
+    throw new AppError("There is no product with that Id", 404);
+  }
 
   const updateData = {
     subImages: [...(product.subImages || []), ...(productData.subImages || [])],
@@ -124,14 +172,18 @@ export const deleteImageService = async (
     },
   });
 
-  // We will handle errors later
-  if (!product) throw new Error("There is no product with that Id");
+  if (!product) {
+    throw new AppError("There is no product with that Id", 404);
+  }
 
   const isImageExist = product.subImagesPublicIds.includes(imageId);
 
   // We will handle errors later
   if (!isImageExist) {
-    throw new Error("This image does not belong to the specified product");
+    throw new AppError(
+      "This image does not belong to the specified product",
+      404,
+    );
   }
 
   await cloudinary.uploader.destroy(imageId);

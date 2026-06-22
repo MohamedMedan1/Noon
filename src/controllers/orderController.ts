@@ -16,7 +16,7 @@ export const getAllOrders = async (
   const userId = String(req.user?.id);
   const userRole = String(req.user?.role);
 
-  const orders = await getAllOrdersService(userId, userRole);
+  const orders = await getAllOrdersService(userId, userRole,req.query);
 
   res.status(201).json({
     status: "success",
@@ -32,12 +32,10 @@ export const createNewOrder = async (
 ) => {
 
   const userId = String(req.user?.id);
-  const userRole = String(req.user?.role);
   
   const order = await createOrderService(
     req.body,
     userId,
-    userRole,
     req.file?.cloudData,
   );
 
@@ -72,7 +70,7 @@ export const approveOrder = async (
   const userRole = String(req.user?.role);
   const orderId = String(req.params?.id);
 
-  const order = await approveOrderService(orderId,userRole);
+  const order = await approveOrderService(orderId);
 
   res.status(201).json({
     status: "success",
@@ -88,7 +86,7 @@ export const cancelOrder = async (
   const userRole = String(req.user?.role);
   const orderId = String(req.params?.id);
 
-  const order = await cancelOrderService(orderId,userRole);
+  const order = await cancelOrderService(orderId);
 
   res.status(201).json({
     status: "success",
@@ -105,7 +103,7 @@ export const refundOrder = async (
   const userId = String(req.user?.id);
   const orderId = String(req.params?.id);
 
-  const {refundedRequestedOrder,refundRequest} = await refundOrderService(orderId,req.body,userId,userRole);
+  const {refundedRequestedOrder,refundRequest} = await refundOrderService(orderId,req.body,userId);
 
   res.status(201).json({
     status: "success",

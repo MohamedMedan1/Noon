@@ -19,6 +19,7 @@ import { uploadMulter } from "../middlewares/uploadMulter.js";
 import { uploadImageToCloud } from "../middlewares/UploadImageToCloud.js";
 import { generateSlug } from "../middlewares/generateSlug.js";
 import { checkAddAbility } from "../middlewares/checkAddAbility.js";
+import { protect, restrictTo } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -26,6 +27,8 @@ router
   .route("/")
   .get(getAllProducts)
   .post(
+    protect,
+    restrictTo("Seller"),
     uploadMulter("fields"),
     validate(createProductSchema),
     generateSlug,
@@ -36,20 +39,29 @@ router
 router
   .route("/:id/images")
   .post(
+    protect,
+    restrictTo("Seller"),
     uploadMulter("fields"),
     checkAddAbility,
     validate(addImageSchema),
     uploadImageToCloud("products", "multi"),
     addImage,
   )
-  .delete(validate(deleteImageSchema),deleteImage);
+  .delete(
+    validate(deleteImageSchema),
+    protect,
+    restrictTo("Seller"),
+    deleteImage,
+  );
 
-router.route("/:id/status").patch(deleteProduct);
+router.route("/:id/status").patch(protect, restrictTo("Seller"), deleteProduct);
 
 router
   .route("/:id")
   .get(getProduct)
   .patch(
+    protect,
+    restrictTo("Seller"),
     uploadMulter("single"),
     validate(updateProductSchema),
     generateSlug,

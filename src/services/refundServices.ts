@@ -1,8 +1,11 @@
 import { prisma } from "../config/prisma.js";
+import { AppError } from "../utils/appError.js";
+import { PrismaQueryFeatures } from "../utils/prismaQueryFeatures.js";
 
 export const getAllRefundsService = async (
   userId: string,
   userRole: string,
+  queryString: any,
 ) => {
   let getCondition = {};
 
@@ -23,18 +26,14 @@ export const getAllRefundsService = async (
       },
     };
   }
-  const refunds = await prisma.refundRequest.findMany({
-    where: getCondition,
-    include: {
-      user: {
-        select: {
-          name: true,
-          email: true,
-        },
-      },
-      order: true,
-    },
-  });
+
+  const features = new PrismaQueryFeatures(queryString, getCondition)
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
+
+  const refunds = await features.execute(prisma.refundRequest);
 
   return refunds;
 };
@@ -81,9 +80,9 @@ export const getRefundService = async (
   });
 
   if (!refund) {
-    // We will handle errors later
-    throw new Error(
+    throw new AppError(
       "Refund request not found or you don't have permission to view it",
+      404,
     );
   }
 
@@ -99,31 +98,48 @@ export const acceptRefundService = async (refundId: string) => {
   });
 
   if (!refund) {
-    // We will handle this error later
-    throw new Error("There is no request refund with that Id");
+    throw new AppError("There is no request refund with that Id", 404);
   }
 
-  const [refundedOrder, acceptedRefund] = await prisma.$transaction([
-    prisma.order.update({
+  const refundDetails = await prisma.$transaction(async (tx) => {
+    const order = await tx.order.update({
       where: {
         id: String(refund.orderId),
+      },
+      include: {
+        orderItem: true,
       },
       data: {
         status: "Refunded",
       },
-    }),
+    });
 
-    prisma.refundRequest.update({
+    const refunded = await tx.refundRequest.update({
       where: {
         id: refundId,
       },
       data: {
         status: "Accepted",
       },
-    }),
-  ]);
+    });
 
-  return { refundedOrder, acceptedRefund };
+    const stockOperations = order.orderItem.map((cur) =>
+      tx.product.update({
+        where: {
+          id: cur.productId,
+        },
+        data: {
+          stock: { increment: cur.quantity },
+        },
+      }),
+    );
+
+    await Promise.all(stockOperations);
+
+    return { order, refunded };
+  });
+
+  return refundDetails;
 };
 
 export const rejectRefundService = async (
@@ -138,8 +154,7 @@ export const rejectRefundService = async (
   });
 
   if (!refund) {
-    // We will handle this error later
-    throw new Error("There is no request refund with that Id");
+    throw new AppError("There is no request refund with that Id", 404);
   }
 
   const [order, rejectedRefund] = await prisma.$transaction([

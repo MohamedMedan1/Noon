@@ -64,8 +64,6 @@ export const GlobalErrorHandler = (
   error.statusCode = error.statusCode || 500;
   error.status = error.status || "error";
 
-  console.log(prismaErrors);
-
   if (error instanceof ZodError) error = handleZodErrors(error);
   if (error instanceof PrismaClientKnownRequestError)
     error = handlePrismaErrors(error);
