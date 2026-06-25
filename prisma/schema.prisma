@@ -46,6 +46,11 @@ enum RefundRequestStatus {
   Rejected
 }
 
+enum couponValueTypes {
+  Percent
+  Fixed
+}
+
 model User {
   id             String          @id @default(uuid())
   name           String?
@@ -67,6 +72,8 @@ model User {
   refundRequests RefundRequest[]
   wishlist       Wishlist?
   reviewComments ReviewComment[]
+  coupons        Coupon[]
+  couponUsages   CouponUsage[]
 }
 
 model SellerRequest {
@@ -105,12 +112,13 @@ model SellerProfile {
 }
 
 model Cart {
-  id         String     @id @default(uuid())
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId     String     @unique
-  created_at DateTime   @default(now())
-  updated_at DateTime   @updatedAt
-  cartItems  CartItem[]
+  id          String     @id @default(uuid())
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String     @unique
+  created_at  DateTime   @default(now())
+  updated_at  DateTime   @updatedAt
+  cartItems   CartItem[]
+  couponCodes String[]
 }
 
 model CartItem {
@@ -213,6 +221,7 @@ model Order {
   payment        Payment?
   orderItem      OrderItem[]
   refundRequests RefundRequest[]
+  couponUsages   CouponUsage[]
 }
 
 model OrderItem {
@@ -277,6 +286,39 @@ model ReviewComment {
   userId    String
   text      String
   createdAt DateTime @default(now())
-  review Review @relation(fields: [reviewId], references: [id], onDelete: Cascade)
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Coupon {
+  id               String           @id @default(uuid())
+  code             String           @unique
+  value            Float
+  valueType        couponValueTypes
+  usageNumber      Int              @default(0)
+  usageLimit       Int
+  minOrderValue    Float?
+  maxDiscountValue Float?
+  isValid          Boolean          @default(true)
+  expiredTime      DateTime
+  vendor           User             @relation(fields: [vendorId], references: [id], onDelete: Cascade)
+  vendorId         String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  deletedAt        DateTime?
+  couponUsages     CouponUsage[]
+}
+
+model CouponUsage {
+  id        String   @id @default(uuid())
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String
+  coupon    Coupon   @relation(fields: [couponId], references: [id], onDelete: Cascade)
+  couponId  String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, couponId, orderId])
 }

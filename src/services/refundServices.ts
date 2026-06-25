@@ -1,4 +1,5 @@
 import { prisma } from "../config/prisma.js";
+import { unRecordCouponUsages } from "../helpers/unRecordCouponUsages.js";
 import { AppError } from "../utils/appError.js";
 import { PrismaQueryFeatures } from "../utils/prismaQueryFeatures.js";
 
@@ -105,6 +106,7 @@ export const acceptRefundService = async (refundId: string) => {
     const order = await tx.order.update({
       where: {
         id: String(refund.orderId),
+        status:"RefundRequested",
       },
       include: {
         orderItem: true,
@@ -135,6 +137,8 @@ export const acceptRefundService = async (refundId: string) => {
     );
 
     await Promise.all(stockOperations);
+
+    await unRecordCouponUsages(tx,String(order.id),String(order.userId))
 
     return { order, refunded };
   });

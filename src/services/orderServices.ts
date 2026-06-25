@@ -1,8 +1,16 @@
 import { prisma } from "../config/prisma.js";
+import { calculateCartTotalPrice } from "../helpers/calculateCartTotalPrice.js";
+import { calculateDiscountForCoupons } from "../helpers/calculateDiscountForCoupons.js";
+import { recordCouponUsages } from "../helpers/recordCouponUsages.js";
+import { unRecordCouponUsages } from "../helpers/unRecordCouponUsages.js";
 import { AppError } from "../utils/appError.js";
 import { PrismaQueryFeatures } from "../utils/prismaQueryFeatures.js";
 
-export const getAllOrdersService = async (userId: string, userRole: string,queryString:any) => {
+export const getAllOrdersService = async (
+  userId: string,
+  userRole: string,
+  queryString: any,
+) => {
   let getCondition = {};
 
   if (userRole === "Customer") {
@@ -22,10 +30,10 @@ export const getAllOrdersService = async (userId: string, userRole: string,query
   }
 
   const features = new PrismaQueryFeatures(queryString, getCondition)
-      .filter()
-      .sort()
-      .limitFields()
-      .paginate();
+    .filter()
+    .sort()
+    .limitFields()
+    .paginate();
 
   const orders = await features.execute(prisma.order);
 
@@ -47,6 +55,7 @@ export const createOrderService = async (
           product: {
             select: {
               price: true,
+              seller:true
             },
           },
         },
@@ -58,27 +67,24 @@ export const createOrderService = async (
     throw new AppError("Your cart is still empty!", 400);
   }
 
-  const totalCartPrice = Number(
-    cart?.cartItems.reduce(
-      (sum, cur) => sum + Number(cur.product.price ?? 0) * cur.quantity,
-      0,
-    ),
-  );
+  const totalPrice = calculateCartTotalPrice(cart);
+  const discount = await calculateDiscountForCoupons(cart);
 
   const order = await prisma.$transaction(async (tx) => {
     const newOrder = await tx.order.create({
       data: {
-        totalPrice: totalCartPrice,
-        orderPrice: totalCartPrice - 0,
+        totalPrice,
+        orderPrice: totalPrice - discount,
+        discount,
         userId,
       },
     });
 
-    const payment = await tx.payment.create({
+    await tx.payment.create({
       data: {
         ...orderData,
         PaidImagePublicId: imageId,
-        totalPaid: totalCartPrice,
+        totalPaid: totalPrice - discount,
         orderId: newOrder.id,
       },
     });
@@ -95,6 +101,18 @@ export const createOrderService = async (
     );
 
     await Promise.all(orderItemsOperations);
+
+    // Record used coupons into couponsUsages  
+    await recordCouponUsages(String(newOrder.id), userId, cart, tx);
+
+    await tx.cart.update({
+      where: {
+        id: cart.id,
+      },
+      data: {
+        couponCodes:[]
+      }
+    });
 
     await tx.cartItem.deleteMany({
       where: {
@@ -214,7 +232,7 @@ export const cancelOrderService = async (orderId: string) => {
   });
 
   if (!orderItems || orderItems.length === 0) {
-    throw new AppError("There is no orderItems with that orderId!",404);
+    throw new AppError("There is no orderItems with that orderId!", 404);
   }
 
   const canceledOrder = await prisma.$transaction(async (tx) => {
@@ -241,6 +259,8 @@ export const cancelOrderService = async (orderId: string) => {
 
     await Promise.all(stockUpdates);
 
+    await unRecordCouponUsages(tx, orderId,String(order.userId))
+
     return order;
   });
 
@@ -259,16 +279,17 @@ export const refundOrderService = async (
   });
 
   if (!order) {
-    throw new AppError("There is no order with that id!",404);
+    throw new AppError("There is no order with that id!", 404);
   }
 
   if (order.userId !== userId) {
-    throw new AppError("You can only refund your own orders!",403);
+    throw new AppError("You can only refund your own orders!", 403);
   }
 
   if (["Pending", "Canceled"].includes(order?.status)) {
     throw new AppError(
-      `You can only refund your order when is it already Confirmed now it is ${order.status}!`,403,
+      `You can only refund your order when is it already Confirmed now it is ${order.status}!`,
+      403,
     );
   }
 
