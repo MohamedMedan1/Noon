@@ -1,18 +1,17 @@
-# 🏟️ ArenaBooking — Sports Facility Reservation API
+# 🛒 Noon E-Commerce API — Scalable Multi-Vendor Backend
 
-A robust, production-ready RESTful API built with **Node.js**, **Express 5**, **TypeScript**, and **MongoDB**. Designed for managing sports venues, scheduling slots, handling media processing, and automating background tasks with high security and performance.
+A feature-rich, high-performance E-Commerce Backend API built using **Node.js**, **Express 5**, **TypeScript**, **PostgreSQL**, and **Prisma ORM**. Engineered for high-concurrency inventory operations, multi-vendor support, strict input validations, and hybrid checkout workflows.
 
 ---
 
 ## ⚡ Key Features
 
-- **Slot Allocation & Booking Engine**: Handles real-time venue availability, prevents overlapping reservation slots, and validates duration metrics.
-- **High-Performance Caching**: Uses **Redis** (`ioredis`) for rapid caching of venue queries and fast data retrieval.
-- **Image Processing Pipeline**: Compresses and resizes uploads on the fly using **Sharp** before streaming assets to **Cloudinary**.
-- **Automated Cron Jobs**: Background scheduling via `node-cron` for automated state maintenance and expired reservation cleanup.
-- **Multi-Channel Email Service**: Dynamic HTML email rendering using **Pug** templates dispatched via **Resend** / **Nodemailer**.
-- **Enterprise-Grade Security**: Protection against OWASP top vulnerabilities using **Helmet**, **HPP**, **Express Rate Limit**, and **Input Sanitization**.
-- **Authentication & Cookies**: Secure JWT authentication delivered over **HTTP-only cookies**.
+- **Multi-Vendor Inventory Engine**: Concurrent stock management backed by **PostgreSQL Transactions** to eliminate race conditions and overselling.
+- **Dynamic Coupon & Promo System**: Flexible rule engine handling percentage/fixed discounts, usage caps, expiration windows, and cart minimums.
+- **Strict Input Validation**: End-to-end request validation powered by **Zod** schemas for type-safe data pipelines.
+- **Hybrid Payment & Verification**: Offline payment workflows supporting manual receipt processing via **Cloudinary** uploads.
+- **Hardened API Security**: Multi-layered defense using **Helmet**, **CORS**, **Rate-Limiting**, and **JWT** bearer tokens.
+- **Email Notifications**: Automated transactional emails (order updates, account verification) using **Nodemailer**.
 
 ---
 
@@ -20,11 +19,11 @@ A robust, production-ready RESTful API built with **Node.js**, **Express 5**, **
 
 - **Runtime & Language**: Node.js, TypeScript
 - **Framework**: Express.js (v5)
-- **Database & Caching**: MongoDB, Mongoose, Redis (`ioredis`)
-- **File Uploads & Media**: Multer, Sharp, Cloudinary
-- **Tasks & Templating**: Node-Cron, Pug
-- **Emails**: Resend, Nodemailer
-- **Security**: Helmet, HPP, Express Rate Limit, Bcrypt, JWT
+- **Database & ORM**: PostgreSQL, Prisma ORM
+- **Validation**: Zod
+- **Media Uploads**: Multer, Cloudinary
+- **Security & Auth**: Helmet, Express-Rate-Limit, Bcrypt, JWT
+- **Email**: Nodemailer
 
 ---
 
@@ -32,13 +31,11 @@ A robust, production-ready RESTful API built with **Node.js**, **Express 5**, **
 
 ### Prerequisites
 - Node.js (v18+ recommended)
-- MongoDB Connection URI
-- Redis Instance
-- Cloudinary & Email Service API Keys
+- PostgreSQL Database Instance
 
 ### Installation
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/YOUR_USERNAME/arenabooking.git](https://github.com/YOUR_USERNAME/arenabooking.git)
-   cd arenabooking
+   git clone [https://github.com/YOUR_USERNAME/noon-ecommerce-api.git](https://github.com/YOUR_USERNAME/noon-ecommerce-api.git)
+   cd noon-ecommerce-api
